@@ -12,8 +12,8 @@ kubectl exec --stdin --tty postgres-69bc4f7bc8-xj7lp -- /bin/bash
 
 
 Postgress install:
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install my-release bitnami/postgresql
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm install my-release bitnami/postgresql
 
 
 after install following log displayed:
