@@ -1,0 +1,90 @@
+#Begin: Configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-deployment-init-configmap
+data:
+  mysql-init.sql: |
+    CREATE TABLE `Advertisment` (
+      `id` int PRIMARY KEY AUTO_INCREMENT,
+      `product` int,
+      `created_at` timestamp,
+      `price` float,
+      `description` varchar(255),
+      `clicks` int,
+      `lastModified` timestamp
+    );
+
+    CREATE TABLE `Product` (
+      `id` int PRIMARY KEY AUTO_INCREMENT,
+      `title` varchar(255),
+      `category` int,
+      `avgPrice` float,
+      `maxPrice` float,
+      `minPrice` float,
+      `lastModified` timestamp
+    );
+
+    CREATE TABLE `Category` (
+      `id` int PRIMARY KEY AUTO_INCREMENT,
+      `title` varchar(255),
+      `category` int
+    );
+
+    ALTER TABLE `Product` ADD FOREIGN KEY (`category`) REFERENCES `Category` (`id`);
+
+    ALTER TABLE `Advertisment` ADD FOREIGN KEY (`product`) REFERENCES `Product` (`id`);
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  labels:
+    app: my-mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-mysql
+  template:
+    metadata:
+      labels:
+        app: my-mysql
+    spec:
+      # Mount the configmap volume
+      # This is an excerpt of deployment.spec.template.spec
+      volumes:
+        - name: init-volume
+          configMap:
+            name: mysql-deployment-init-configmap
+      containers:
+        - name: my-mysql
+          image: mysql
+          volumeMounts:
+            - name: init-volume
+              mountPath: /docker-entrypoint-initdb.d/
+          # Set required environment variables to initialize the container
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "mysecretpw"
+            - name: MYSQL_DATABASE
+              value: "store"
+          ports:
+            - containerPort: 33060
+
+---
+#Begin: Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app-mysql-service
+spec:
+  selector:
+    app: my-mysql
+  ports:
+    - name: mysql-xproto
+      protocol: TCP
+      port: 33060
+      targetPort: 33060
+#End: Service
