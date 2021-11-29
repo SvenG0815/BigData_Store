@@ -36,22 +36,4 @@ spec:
       targetPort: 3000
 #End: Service
 
----
-#Begin: Ingress
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: webapp-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: webapp-service
-                port:
-                  number: 3000
+

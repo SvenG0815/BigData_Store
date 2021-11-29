@@ -52,6 +52,15 @@ async function executeQuery(query, data) {
 }
 
 async function getAdvertisments(){
+	console.log("Get Advertisments");
+  const result = [{
+	  id: 1,
+	  title: "Test",
+	  avgPrice: 1.1,
+	  maxPrice: 2,
+	  minPrice: 1
+  }];
+  return result;
   const query = "SELECT * FROM Advertisment";
   let data = (await executeQuery(query)).fetch();
   if(data){
@@ -61,18 +70,32 @@ async function getAdvertisments(){
   }
 }
 
-// app.get('/advertisments', (req, res) => {
-//   getAdvertisments().then(data => {
-//     res.send(data);
-//   })
-//   .catch(err => {
-//     res.send(err);
-//   })
-  
-// })
+app.get('/advertisments', (req, res) => {
+  getAdvertisments().then(data => {
+    res.send(data);
+  })
+  .catch(err => {
+    res.send(err);
+  })
+})
+
+app.post('/advertisments', (req, res) => {
+	const id = 1;
+	const message = {
+		id: id
+	};
+	return res.send(message);
+})
+
+app.delete('/advertisments/:id', (req, res) => {
+	const message = {
+		text: `Deleted Advertisment with Id ${req.params.id}`
+	};
+	return res.send(message);
+})
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.send('Hello World!Again')
 })
 
 app.listen(options.port, () => {
