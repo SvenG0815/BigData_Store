@@ -4,8 +4,10 @@ const { program: optionparser } = require('commander')
 const mysqlx = require('@mysql/xdevapi');
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
+const cors = require('cors');
 
 const app = express()
+app.use(cors())
 
 // -------------------------------------------------------
 // Command-line options
@@ -51,15 +53,70 @@ async function executeQuery(query, data) {
 	return await session.sql(query, data).bind(data).execute()
 }
 
+async function getAdvertisment(id){
+	let result = {
+		id: 1,
+		product: {
+			id: 1,
+			title: "Awesome Lego",
+			category: {
+				id: 1
+			},
+			avgPrice: 10,
+			maxPrice: 20,
+			minPrice: 8,
+			lastModified: '2020-01-01 00:00:00' 
+		},
+		createdAt: '2020-01-01 00:00:00',
+		price: 12.2,
+		description: "Everyone loves Lego... right?",
+		clicks: 2,
+		lastModified: '2020-01-01 00:00:00',
+	  };
+	return result;
+}
+
 async function getAdvertisments(){
 	console.log("Get Advertisments");
   const result = [{
-	  id: 1,
-	  title: "Test",
-	  avgPrice: 1.1,
-	  maxPrice: 2,
-	  minPrice: 1
-  }];
+    id: 1,
+    product: {
+		id: 1,
+		title: "Awesome Lego",
+		category: {
+			id: 1
+		},
+		avgPrice: 10,
+		maxPrice: 20,
+		minPrice: 8,
+		lastModified: '2020-01-01 00:00:00' 
+	},
+    createdAt: '2020-01-01 00:00:00',
+    price: 12.2,
+    description: "Everyone loves Lego... right?",
+    clicks: 2,
+    lastModified: '2020-01-01 00:00:00',
+  },
+  {
+    id: 2,
+    product: {
+		id: 1,
+		title: "Awesome Jukebox",
+		category: {
+			id: 1
+		},
+		avgPrice: 100.30,
+		maxPrice: 250,
+		minPrice: 80,
+		lastModified: '2020-01-01 00:00:00' 
+	},
+    createdAt: '2020-01-01 00:00:00',
+    price: 95,
+    description: "Awesome Music. Works perfectly for Spice Girls!",
+    clicks: 2,
+    lastModified: '2020-01-01 00:00:00',
+  },
+];
   return result;
   const query = "SELECT * FROM Advertisment";
   let data = (await executeQuery(query)).fetch();
@@ -77,6 +134,15 @@ app.get('/advertisments', (req, res) => {
   .catch(err => {
     res.send(err);
   })
+})
+
+app.get('/advertisments/:id', (req, res) => {
+	getAdvertisment(req.params.id).then(data => {
+	  res.send(data);
+	})
+	.catch(err => {
+	  res.send(err);
+	})
 })
 
 app.post('/advertisments', (req, res) => {

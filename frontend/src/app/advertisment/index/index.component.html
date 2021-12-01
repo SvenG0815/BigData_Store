@@ -1,0 +1,14 @@
+<div class="container">
+    <div 
+        class="card" 
+        style="width: 18rem;" 
+        *ngFor="let ad of Advertisments; let i = index">
+        <img class="card-img-top" src="..." alt="Card image cap">
+        <div class="card-body">
+          <h5 class="card-title">{{ad.product.title}}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">Price: {{ad.price}} $</h6>
+          <p class="card-text">{{ad.description}}</p>
+          <a href="#" (click)="navigate(ad.id)" class="btn btn-primary">View</a>
+        </div>
+    </div>
+</div>

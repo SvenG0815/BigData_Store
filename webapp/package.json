@@ -12,6 +12,7 @@
     "@awaitjs/express": "^0.6.3",
     "@mysql/xdevapi": "^8.0.22",
     "commander": "^6.2.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "kafkajs": "^1.14.0",
     "lorem-ipsum": "^2.0.3",
