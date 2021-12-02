@@ -10,7 +10,7 @@ import { Advertisment } from './advertisment';
 })
 export class AdvertismentService {
   // TODO: Switch from localhost to service
-  private apiURL = "http://webapp:3000";
+  private apiURL = "http://localhost:3000";
   httpOptions = {
     headers: new HttpHeaders({
       'Content-Type': 'application/json'
@@ -18,7 +18,7 @@ export class AdvertismentService {
   }
   constructor(private httpClient: HttpClient) { }
 
-  getAll(): Observable<Object>{
+  getAll(): Observable<any>{
     return this.httpClient.get(this.apiURL + '/advertisments')
   }
 

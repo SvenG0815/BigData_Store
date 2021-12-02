@@ -26,7 +26,8 @@ let options = optionparser
 	.option('--memcached-port <port>', 'Memcached port', 11211)
 	.option('--memcached-update-interval <ms>', 'Interval to query DNS for memcached IPs', 5000)
 	// Database options
-	.option('--mysql-host <host>', 'MySQL host', 'my-app-mysql-service')
+	//.option('--mysql-host <host>', 'MySQL host', 'my-app-mysql-service')
+	.option('--mysql-host <host>', 'MySQL host', 'localhost')
 	.option('--mysql-port <port>', 'MySQL port', 33060)
 	.option('--mysql-schema <db>', 'MySQL Schema/database', 'store')
 	.option('--mysql-username <username>', 'MySQL username', 'root')
@@ -78,53 +79,10 @@ async function getAdvertisment(id){
 
 async function getAdvertisments(){
 	console.log("Get Advertisments");
-  const result = [{
-    id: 1,
-    product: {
-		id: 1,
-		title: "Awesome Lego",
-		category: {
-			id: 1
-		},
-		avgPrice: 10,
-		maxPrice: 20,
-		minPrice: 8,
-		lastModified: '2020-01-01 00:00:00' 
-	},
-    createdAt: '2020-01-01 00:00:00',
-    price: 12.2,
-    description: "Everyone loves Lego... right?",
-    clicks: 2,
-    lastModified: '2020-01-01 00:00:00',
-  },
-  {
-    id: 2,
-    product: {
-		id: 1,
-		title: "Awesome Jukebox",
-		category: {
-			id: 1
-		},
-		avgPrice: 100.30,
-		maxPrice: 250,
-		minPrice: 80,
-		lastModified: '2020-01-01 00:00:00' 
-	},
-    createdAt: '2020-01-01 00:00:00',
-    price: 95,
-    description: "Awesome Music. Works perfectly for Spice Girls!",
-    clicks: 2,
-    lastModified: '2020-01-01 00:00:00',
-  },
-];
-  return result;
-  const query = "SELECT * FROM Advertisment";
-  let data = (await executeQuery(query)).fetch();
-  if(data){
-    return data;
-  }else{
-    console.log("Empty");
-  }
+	const query = "SELECT * FROM Advertisment";
+	let executeResult = await executeQuery(query,[]);
+	let data = executeResult.fetchAll();
+	return data;
 }
 
 app.get('/advertisments', (req, res) => {

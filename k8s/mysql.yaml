@@ -35,6 +35,24 @@ data:
 
     ALTER TABLE `Advertisment` ADD FOREIGN KEY (`product`) REFERENCES `Product` (`id`);
 
+    INSERT INTO Category (id, title, category) VALUES (1,'Children', NULL);
+    INSERT INTO Category (id, title, category) VALUES (2,'Lego', 1);
+    INSERT INTO Category (id, title, category) VALUES (3,'Playmobile', 1);
+
+    INSERT INTO Product (id, title, avgPrice, maxPrice, minPrice) VALUES (1, 'Lego Starwars', 12.4, 20, 10.3);
+    INSERT INTO Product (id, title, avgPrice, maxPrice, minPrice) VALUES (2, 'Lego Batman', 16.2, 30, 8);
+    INSERT INTO Product (id, title, avgPrice, maxPrice, minPrice) VALUES (3, 'Playmobile Vikings', 28.4, 20, 50);
+
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (1, 10.3, 'Awesome Lego Starwars Set!', 0);
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (1, 20, 'Who does not Like Star Wars??', 0);
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (2, 15, 'I am Batman', 0);
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (2, 30, 'Play with this Lego Set!', 0);
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (3, 30, 'Playmobile on Steroids', 0);
+    INSERT INTO Advertisment (product, price, description, clicks) VALUES (3, 50, 'Super cool stuff', 0);
+
+
+    
+
 ---
 apiVersion: apps/v1
 kind: Deployment

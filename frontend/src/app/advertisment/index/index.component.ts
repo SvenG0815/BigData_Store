@@ -21,9 +21,19 @@ export class IndexComponent implements OnInit {
 
   retrieveAdvertisments(){
     this.service.getAll()
-      .subscribe(data => {
-        debugger;
-        this.Advertisments = data;
+      .subscribe((data: []) => {
+        this.Advertisments = [];
+        data.forEach(element => {
+          var ad :Advertisment = {
+            id: element[0],
+            product: element[1],
+            price: element[3],
+            description: element[4],
+            clicks: element[5]
+          };
+          ad.price = Math.round(ad.price * 100) / 100;
+          this.Advertisments.push(ad)
+        })
       })
   }
   navigate(id: number){
