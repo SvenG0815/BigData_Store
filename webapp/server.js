@@ -56,30 +56,61 @@ async function executeQuery(query, data) {
 	return await session.sql(query, data).bind(data).execute()
 }
 
-async function getAdvertisment(id){
-	let result = {
-		id: 1,
-		product: {
-			id: 1,
-			title: "Awesome Lego",
-			category: {
-				id: 1
-			},
-			avgPrice: 10,
-			maxPrice: 20,
-			minPrice: 8,
-			lastModified: '2020-01-01 00:00:00' 
-		},
-		createdAt: '2020-01-01 00:00:00',
-		price: 12.2,
-		description: "Everyone loves Lego... right?",
-		clicks: 2,
-		lastModified: '2020-01-01 00:00:00',
-	  };
-	return result;
+
+// -------------------------------------------------------
+// Memcache Configuration
+// -------------------------------------------------------
+
+//Connect to the memcached instances
+let memcached = null
+let memcachedServers = []
+
+async function getMemcachedServersFromDns() {
+	try {
+		// Query all IP addresses for this hostname
+		let queryResult = await dns.lookup(options.memcachedHostname, { all: true })
+
+		// Create IP:Port mappings
+		let servers = queryResult.map(el => el.address + ":" + options.memcachedPort)
+
+		// Check if the list of servers has changed
+		// and only create a new object if the server list has changed
+		if (memcachedServers.sort().toString() !== servers.sort().toString()) {
+			console.log("Updated memcached server list to ", servers)
+			memcachedServers = servers
+
+			//Disconnect an existing client
+			if (memcached)
+				await memcached.disconnect()
+
+			memcached = new MemcachePlus(memcachedServers);
+		}
+	} catch (e) {
+		console.log("Unable to get memcache servers", e)
+	}
+}
+
+//Initially try to connect to the memcached servers, then each 5s update the list
+getMemcachedServersFromDns()
+setInterval(() => getMemcachedServersFromDns(), options.memcachedUpdateInterval)
+
+//Get data from cache if a cache exists yet
+async function getFromCache(key) {
+	if (!memcached) {
+		console.log(`No memcached instance available, memcachedServers = ${memcachedServers}`)
+		return null;
+	}
+	return await memcached.get(key);
 }
 
 async function getAdvertisments(){
+	const key = 'advertisments';
+	let cachedata = await getFromCache(key);
+	if(cachedata){
+	  console.log(`Cache hit for key=${key}, cachedata = ${cachedata}`)
+	  return res.send(cachedata);
+	}
+
 	console.log("Get Advertisments");
 	const query = "SELECT * FROM Advertisment";
 	let executeResult = await executeQuery(query,[]);
@@ -95,6 +126,13 @@ async function postAdvertisment(ad){
 }
 
 async function getProducts(){
+	const key = 'products';
+	let cachedata = await getFromCache(key);
+	if(cachedata){
+	  console.log(`Cache hit for key=${key}, cachedata = ${cachedata}`)
+	  return res.send(cachedata);
+	}
+
 	const query = "SELECT * FROM Product";
 	let executeResult = await executeQuery(query,[]);
 	let data = executeResult.fetchAll();
@@ -147,7 +185,7 @@ app.get('/products', (req, res) => {
   })
 
 app.get('/', (req, res) => {
-  res.send('Hello World!Again')
+  res.send('Hello World!')
 })
 
 app.listen(options.port, () => {
