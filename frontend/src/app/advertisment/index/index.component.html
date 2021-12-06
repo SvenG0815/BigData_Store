@@ -1,14 +1,49 @@
+
 <div class="container">
-    <div 
-        class="card" 
-        style="width: 18rem;" 
-        *ngFor="let ad of Advertisments; let i = index">
-        <img class="card-img-top" src="..." alt="Card image cap">
-        <div class="card-body">
-          <h5 class="card-title">{{ad.product.title}}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Price: {{ad.price}} $</h6>
-          <p class="card-text">{{ad.description}}</p>
-          <a href="#" (click)="navigate(ad.id)" class="btn btn-primary">View</a>
+  <div *ngFor="let ad of Advertisments; let i = index">
+    <div *ngIf="i % 3 == 0" class="row" style="padding-top: 20 px;">
+      <div class="col-sm">
+        <div 
+          class="card" 
+          style="width: 18rem;" >
+          <img class="card-img-top" src="..." alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">{{ad.product.title}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Price: {{ad.price}} $</h6>
+            <p class="card-text">{{ad.description}}</p>
+            <a href="#" (click)="navigate(ad.id)" class="btn btn-primary">View</a>
+          </div>
         </div>
+      </div>
+
+      <div class="col-sm" *ngIf="i + 1 < Advertisments.length">
+        <div 
+          class="card" 
+          style="width: 18rem;" >
+          <img class="card-img-top" src="..." alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">{{Advertisments[i +1].product.title}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Price: {{Advertisments[i +1].price}} $</h6>
+            <p class="card-text">{{Advertisments[i +1].description}}</p>
+            <a href="#" (click)="navigate(ad.id)" class="btn btn-primary">View</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm" *ngIf="i + 2 < Advertisments.length">
+        <div 
+          class="card" 
+          style="width: 18rem;" >
+          <img class="card-img-top" src="..." alt="Card image cap">
+          <div class="card-body">
+            <h5 class="card-title">{{Advertisments[i +2].product.title}}</h5>
+            <h6 class="card-subtitle mb-2 text-muted">Price: {{Advertisments[i +2].price}} $</h6>
+            <p class="card-text">{{Advertisments[i +2].description}}</p>
+            <a href="#" (click)="navigate(ad.id)" class="btn btn-primary">View</a>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </div>
 </div>

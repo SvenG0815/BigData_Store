@@ -1,6 +1,6 @@
 export interface Advertisment {
     id: number;
-    product: Object;
+    product: number;
     createdAt?: Date;
     price: number;
     description: string;

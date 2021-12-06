@@ -5,8 +5,10 @@ const mysqlx = require('@mysql/xdevapi');
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
 const cors = require('cors');
+var bodyParser = require('body-parser');
 
 const app = express()
+var jsonParser = bodyParser.json();
 app.use(cors())
 
 // -------------------------------------------------------
@@ -85,6 +87,22 @@ async function getAdvertisments(){
 	return data;
 }
 
+async function postAdvertisment(ad){
+	const query = `INSERT INTO Advertisment (product, price, description, clicks) VALUES (${ad.product}, ${ad.price}, '${ad.description}', 0);`;
+	let executeResult = await executeQuery(query,[]);
+	let data = executeResult.fetchAll();
+	return data;
+}
+
+async function getProducts(){
+	const query = "SELECT * FROM Product";
+	let executeResult = await executeQuery(query,[]);
+	let data = executeResult.fetchAll();
+	return data;
+}
+
+
+
 app.get('/advertisments', (req, res) => {
   getAdvertisments().then(data => {
     res.send(data);
@@ -103,12 +121,13 @@ app.get('/advertisments/:id', (req, res) => {
 	})
 })
 
-app.post('/advertisments', (req, res) => {
-	const id = 1;
-	const message = {
-		id: id
-	};
-	return res.send(message);
+app.post('/advertisments', jsonParser, (req, res) => {
+	postAdvertisment(req.body).then(data => {
+		res.send(data);
+	})
+	.catch(err => {
+		res.send(err);
+	})
 })
 
 app.delete('/advertisments/:id', (req, res) => {
@@ -117,6 +136,15 @@ app.delete('/advertisments/:id', (req, res) => {
 	};
 	return res.send(message);
 })
+
+app.get('/products', (req, res) => {
+	getProducts().then(data => {
+	  res.send(data);
+	})
+	.catch(err => {
+	  res.send(err);
+	})
+  })
 
 app.get('/', (req, res) => {
   res.send('Hello World!Again')
