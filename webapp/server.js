@@ -2,6 +2,7 @@ const os = require('os')
 const dns = require('dns').promises
 const { program: optionparser } = require('commander')
 const mysqlx = require('@mysql/xdevapi');
+const { Kafka } = require('kafkajs')
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
 const cors = require('cors');
@@ -103,6 +104,38 @@ async function getFromCache(key) {
 	return await memcached.get(key);
 }
 
+
+// -------------------------------------------------------
+// Kafka Configuration
+// -------------------------------------------------------
+
+// Kafka connection
+const kafka = new Kafka({
+	clientId: options.kafkaClientId,
+	brokers: [options.kafkaBroker],
+	retry: {
+		retries: 0
+	}
+})
+
+const producer = kafka.producer()
+// End
+
+// Send tracking message to Kafka
+async function sendKafkaMessage(data) {
+	//Ensure the producer is connected
+	await producer.connect()
+
+	//Send message
+	await producer.send({
+		topic: options.kafkaTopicTracking,
+		messages: [
+			{ value: JSON.stringify(data) }
+		]
+	})
+}
+// End
+
 async function getAdvertisments(){
 	const key = 'advertisments';
 	let cachedata = await getFromCache(key);
@@ -160,6 +193,14 @@ app.get('/advertisments/:id', (req, res) => {
 })
 
 app.post('/advertisments', jsonParser, (req, res) => {
+
+	var topic = "Advertisments";
+
+	// Send the tracking message to Kafka
+	sendKafkaMessageMessage(req.body)
+		.then(() => console.log("Sent to kafka"))
+		.catch(e => console.log("Error sending to kafka", e))
+
 	postAdvertisment(req.body).then(data => {
 		res.send(data);
 	})
