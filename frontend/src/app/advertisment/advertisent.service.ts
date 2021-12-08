@@ -31,10 +31,14 @@ export class AdvertismentService {
   }
 
   update(advertisment: Advertisment): Observable<Object>{
-    return this.httpClient.put(this.apiURL + '/advertisments/' + advertisment.id, JSON.stringify(advertisment), this.httpOptions);
+    return this.httpClient.put(this.apiURL + '/advertisments/' + advertisment.id, advertisment, this.httpOptions);
   }
 
   delete(advertisent: Advertisment): Observable<Object>{
     return this.httpClient.delete(this.apiURL + '/advertisments/' + advertisent.id);
+  }
+
+  getProducts(): Observable<any>{
+    return this.httpClient.get(this.apiURL + '/products');
   }
 }

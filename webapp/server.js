@@ -2,11 +2,15 @@ const os = require('os')
 const dns = require('dns').promises
 const { program: optionparser } = require('commander')
 const mysqlx = require('@mysql/xdevapi');
+const { Kafka } = require('kafkajs')
 const MemcachePlus = require('memcache-plus');
 const express = require('express')
 const cors = require('cors');
+var bodyParser = require('body-parser');
 
 const app = express()
+const cacheTimeSecs = 15
+var jsonParser = bodyParser.json();
 app.use(cors())
 
 // -------------------------------------------------------
@@ -26,8 +30,8 @@ let options = optionparser
 	.option('--memcached-port <port>', 'Memcached port', 11211)
 	.option('--memcached-update-interval <ms>', 'Interval to query DNS for memcached IPs', 5000)
 	// Database options
-	//.option('--mysql-host <host>', 'MySQL host', 'my-app-mysql-service')
-	.option('--mysql-host <host>', 'MySQL host', 'localhost')
+	.option('--mysql-host <host>', 'MySQL host', 'my-app-mysql-service')
+	//.option('--mysql-host <host>', 'MySQL host', 'localhost')
 	.option('--mysql-port <port>', 'MySQL port', 33060)
 	.option('--mysql-schema <db>', 'MySQL Schema/database', 'store')
 	.option('--mysql-username <username>', 'MySQL username', 'root')
@@ -54,36 +58,138 @@ async function executeQuery(query, data) {
 	return await session.sql(query, data).bind(data).execute()
 }
 
-async function getAdvertisment(id){
-	let result = {
-		id: 1,
-		product: {
-			id: 1,
-			title: "Awesome Lego",
-			category: {
-				id: 1
-			},
-			avgPrice: 10,
-			maxPrice: 20,
-			minPrice: 8,
-			lastModified: '2020-01-01 00:00:00' 
-		},
-		createdAt: '2020-01-01 00:00:00',
-		price: 12.2,
-		description: "Everyone loves Lego... right?",
-		clicks: 2,
-		lastModified: '2020-01-01 00:00:00',
-	  };
-	return result;
+
+// -------------------------------------------------------
+// Memcache Configuration
+// -------------------------------------------------------
+
+//Connect to the memcached instances
+let memcached = null
+let memcachedServers = []
+
+async function getMemcachedServersFromDns() {
+	try {
+		// Query all IP addresses for this hostname
+		let queryResult = await dns.lookup(options.memcachedHostname, { all: true })
+
+		// Create IP:Port mappings
+		let servers = queryResult.map(el => el.address + ":" + options.memcachedPort)
+
+		// Check if the list of servers has changed
+		// and only create a new object if the server list has changed
+		if (memcachedServers.sort().toString() !== servers.sort().toString()) {
+			console.log("Updated memcached server list to ", servers)
+			memcachedServers = servers
+
+			//Disconnect an existing client
+			if (memcached)
+				await memcached.disconnect()
+
+			memcached = new MemcachePlus(memcachedServers);
+		}
+	} catch (e) {
+		console.log("Unable to get memcache servers", e)
+	}
 }
 
+//Initially try to connect to the memcached servers, then each 5s update the list
+getMemcachedServersFromDns()
+setInterval(() => getMemcachedServersFromDns(), options.memcachedUpdateInterval)
+
+//Get data from cache if a cache exists yet
+async function getFromCache(key) {
+	if (!memcached) {
+		console.log(`No memcached instance available, memcachedServers = ${memcachedServers}`)
+		return null;
+	}
+	return await memcached.get(key);
+}
+
+
+// -------------------------------------------------------
+// Kafka Configuration
+// -------------------------------------------------------
+
+// Kafka connection
+const kafka = new Kafka({
+	clientId: options.kafkaClientId,
+	brokers: [options.kafkaBroker],
+	retry: {
+		retries: 0
+	}
+})
+
+const producer = kafka.producer()
+// End
+
+// Send tracking message to Kafka
+async function sendKafkaMessage(data) {
+	//Ensure the producer is connected
+	await producer.connect()
+
+	//Send message
+	await producer.send({
+		topic: options.kafkaTopicTracking,
+		messages: [
+			{ value: JSON.stringify(data) }
+		]
+	})
+}
+// End
+
 async function getAdvertisments(){
+	const key = 'advertisments';
+	let cachedata = await getFromCache(key);
+	if(cachedata){
+	  console.log(`Cache hit for key=${key}, cachedata = ${cachedata}`)
+	  return cachedata;
+	}
+
 	console.log("Get Advertisments");
 	const query = "SELECT * FROM Advertisment";
 	let executeResult = await executeQuery(query,[]);
 	let data = executeResult.fetchAll();
+	if (data) {
+		let result = data.map(row => row[0])
+		console.log(`Got result=${data}, storing in cache`)
+		if (memcached)
+			await memcached.set(key, data, cacheTimeSecs);
+		return data
+	} else {
+		throw "No advertisments data found"
+	}
+}
+
+async function postAdvertisment(ad){
+	const query = `INSERT INTO Advertisment (product, price, description, clicks) VALUES (${ad.product}, ${ad.price}, '${ad.description}', 0);`;
+	let executeResult = await executeQuery(query,[]);
+	let data = executeResult.fetchAll();
 	return data;
 }
+
+async function getProducts(){
+	const key = 'products';
+	let cachedata = await getFromCache(key);
+	if(cachedata){
+	  console.log(`Cache hit for key=${key}, cachedata = ${cachedata}`)
+	  return cachedata;
+	}
+
+	const query = "SELECT * FROM Product";
+	let executeResult = await executeQuery(query,[]);
+	let data = executeResult.fetchAll();
+	if (data) {
+		let result = data.map(row => row[0])
+		console.log(`Got result=${result}, storing in cache`)
+		if (memcached)
+			await memcached.set(key, data, cacheTimeSecs);
+		return data
+	} else {
+		throw "No products data found"
+	}
+}
+
+
 
 app.get('/advertisments', (req, res) => {
   getAdvertisments().then(data => {
@@ -103,12 +209,21 @@ app.get('/advertisments/:id', (req, res) => {
 	})
 })
 
-app.post('/advertisments', (req, res) => {
-	const id = 1;
-	const message = {
-		id: id
-	};
-	return res.send(message);
+app.post('/advertisments', jsonParser, (req, res) => {
+
+	var topic = "Advertisments";
+
+	// Send the tracking message to Kafka
+	sendKafkaMessageMessage(req.body)
+		.then(() => console.log("Sent to kafka"))
+		.catch(e => console.log("Error sending to kafka", e))
+
+	postAdvertisment(req.body).then(data => {
+		res.send(data);
+	})
+	.catch(err => {
+		res.send(err);
+	})
 })
 
 app.delete('/advertisments/:id', (req, res) => {
@@ -118,8 +233,17 @@ app.delete('/advertisments/:id', (req, res) => {
 	return res.send(message);
 })
 
+app.get('/products', (req, res) => {
+	getProducts().then(data => {
+	  res.send(data);
+	})
+	.catch(err => {
+	  res.send(err);
+	})
+  })
+
 app.get('/', (req, res) => {
-  res.send('Hello World!Again')
+  res.send('Hello World!')
 })
 
 app.listen(options.port, () => {

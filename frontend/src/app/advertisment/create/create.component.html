@@ -1,33 +1,37 @@
 <div class="submit-form">
-      <div class="form-group">
-          <p>id: number;
-            product: Object;
-            createdAt: Date;
-            price: number;
-            description: string;
-            clicks: number;
-            lasModified: Date;</p>
-        <label for="title">Price</label>
-        <input
-          type="text"
-          class="form-control"
-          id="price"
-          required
-          [(ngModel)]="Advertisment.price"
-          name="title"
-        />
-      </div>
+
+  <div class="form-group">
+    <label for="Product">Product</label>
+    <select class="form-control" name="Product" [(ngModel)]="selectedProduct">
+      <option *ngFor="let product of products" [value]="product.id" >
+         {{product.title}}
+      </option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="title">Price</label>
+    <input
+      type="text"
+      class="form-control"
+      id="price"
+      required
+      [(ngModel)]="Advertisment.price"
+      name="title"
+    />
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description</label>
+    <input
+      class="form-control"
+      id="description"
+      required
+      [(ngModel)]="Advertisment.description"
+      name="description"
+    />
+  </div>
+
   
-      <div class="form-group">
-        <label for="description">Description</label>
-        <input
-          class="form-control"
-          id="description"
-          required
-          [(ngModel)]="Advertisment.description"
-          name="description"
-        />
-      </div>
-  
-      <button (click)="createAdvertisment()" class="btn btn-success">Submit</button>
-    </div>
+  <button (click)="createAdvertisment()" class="btn btn-success">Submit</button>
+</div>
