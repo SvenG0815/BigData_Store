@@ -125,8 +125,10 @@ const producer = kafka.producer()
 // Send tracking message to Kafka
 async function sendKafkaMessage(data) {
 	//Ensure the producer is connected
+	console.log("connecting to kafka...")
 	await producer.connect()
 
+	console.log("connected to kafka, sending msg...")
 	//Send message
 	await producer.send({
 		topic: options.kafkaTopicTracking,
@@ -134,6 +136,8 @@ async function sendKafkaMessage(data) {
 			{ value: JSON.stringify(data) }
 		]
 	})
+	console.log("message sent to kafka...")
+	
 }
 // End
 
@@ -213,8 +217,10 @@ app.post('/advertisments', jsonParser, (req, res) => {
 
 	var topic = "Advertisments";
 
+	console.log("body: ", req.body)
+
 	// Send the tracking message to Kafka
-	sendKafkaMessageMessage(req.body)
+	sendKafkaMessage({product: req.body.product, price: int(req.body.price) })
 		.then(() => console.log("Sent to kafka"))
 		.catch(e => console.log("Error sending to kafka", e))
 

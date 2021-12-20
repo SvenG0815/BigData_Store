@@ -2,7 +2,7 @@
 
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType
+from pyspark.sql.types import IntegerType, StringType, StructType, TimestampType, DoubleType
 import mysqlx
 
 dbOptions = {"host": "my-app-mysql-service", 'port': 33060, "user": "root", "password": "mysecretpw"}
@@ -32,8 +32,7 @@ kafkaMessages = spark \
 # Define schema of tracking data
 trackingMessageSchema = StructType() \
     .add("product", StringType()) \
-    .add("price", IntegerType()) \
-    .add("timestamp", IntegerType())
+    .add("price", StringType())
 
 # Example Part 3
 # Convert value: binary -> JSON -> fields + parsed timestamp
@@ -43,28 +42,16 @@ trackingMessages = kafkaMessages.select(
         column("value").cast("string"),
         trackingMessageSchema
     ).alias("json")
-).select(
-    # Convert Unix timestamp to TimestampType
-    from_unixtime(column('json.timestamp'))
-    .cast(TimestampType())
-    .alias("parsed_timestamp"),
+).withColumnRenamed('json.product', 'product')
 
-    # Select all JSON fields
-    column("json.*")
-) \
-    .withColumnRenamed('json.product', 'product') \
-    .withWatermark("parsed_timestamp", windowDuration)
+trackingMessages = trackingMessages.select(col("json.product").cast('integer').alias("product"), col("json.price").cast('double').alias("price"))
 
+trackingMessages.printSchema()
+
+#print(trackingMessages)
 # Example Part 4
 # Compute most popular slides
-popular = trackingMessages.groupBy(
-    window(
-        column("parsed_timestamp"),
-        windowDuration,
-        slidingDuration
-    ),
-    column("product")
-).count().withColumnRenamed('count', 'views')
+popular = trackingMessages.groupBy(column("product")).avg("price")
 
 # Example Part 5
 # Start running the query; print running counts to the console
@@ -83,7 +70,7 @@ def saveToDatabase(batchDataframe, batchId):
     # Define function to save a dataframe to mysql
     def save_to_db(iterator):
         # Connect to database and use schema
-        session = mysqlx.get_session(dbOptions)
+        """ session = mysqlx.get_session(dbOptions)
         session.sql("USE popular").execute()
 
         for row in iterator:
@@ -93,7 +80,7 @@ def saveToDatabase(batchDataframe, batchId):
                               "ON DUPLICATE KEY UPDATE count=?")
             sql.bind(row.mission, row.views, row.views).execute()
 
-        session.close()
+        session.close() """
 
     # Perform batch UPSERTS per data partition
     batchDataframe.foreachPartition(save_to_db)

@@ -6,4 +6,5 @@ export interface Advertisment {
     description: string;
     clicks: number;
     lasModified?: Date;
+    timestamp?: Date;
 }

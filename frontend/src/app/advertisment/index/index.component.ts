@@ -11,20 +11,21 @@ import { Advertisment } from '../advertisment';
 })
 export class IndexComponent implements OnInit {
 
-  Advertisments : any;
+  Advertisments: any;
 
-  constructor(private service: AdvertismentService, private router: Router) { }
+  constructor(private service: AdvertismentService, private router: Router) {  }
 
   ngOnInit(): void {
     this.retrieveAdvertisments();
   }
 
-  retrieveAdvertisments(){
+  retrieveAdvertisments() {
     this.service.getAll()
       .subscribe((data: []) => {
         this.Advertisments = [];
+        console.log(data)
         data.forEach(element => {
-          var ad :Advertisment = {
+          var ad: Advertisment = {
             id: element[0],
             product: element[1],
             price: element[3],
@@ -36,9 +37,9 @@ export class IndexComponent implements OnInit {
         })
       })
   }
-  navigate(id: number){
-      this.router.navigateByUrl(`advertisment/${id}/view`);
-      return false;
+  navigate(id: number) {
+    this.router.navigateByUrl(`advertisment/${id}/view`);
+    return false;
   }
 
 }

@@ -10,6 +10,8 @@ build:
       context: webapp
     - image: frontend
       context: frontend
+    - image: sparkapp
+      context: sparkapp
 
 deploy:
   kubectl:

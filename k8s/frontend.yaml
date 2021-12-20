@@ -53,6 +53,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: frontend-service
+                name: webapp-service
                 port:
-                  number: 80
+                  number: 3000

@@ -16,7 +16,8 @@ export class CreateComponent implements OnInit {
     description: "",
     price: 0,
     product: 0,
-    id: 2
+    id: 2,
+    timestamp: new Date()
   };
 
   products: Product[] = new Array<Product>();
@@ -47,6 +48,8 @@ export class CreateComponent implements OnInit {
     if(this.Advertisment != null){
       debugger;
       this.Advertisment.product = this.selectedProduct;
+      this.Advertisment.timestamp = new Date();
+      console.log("AD: ", this.Advertisment)
       this.service.create(this.Advertisment).subscribe(response => {
         console.log(response);
         this.router.navigate(['/advertisment/index']);
