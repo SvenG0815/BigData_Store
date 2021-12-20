@@ -28,7 +28,8 @@ kafkaMessages = spark \
 # Define schema of tracking data
 # Wie sehen unsere Daten da aus?
 trackingMessageSchema = StructType() \
-    .add("mission", StringType()) \
+    .add("product", StringType()) \
+    .add("price", IntegerType()) \
     .add("timestamp", IntegerType())
 
 # Convert value: binary -> JSON -> fields + parsed timestamp
