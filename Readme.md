@@ -35,6 +35,10 @@ helm install --namespace=default --set hdfs.dataNode.replicas=1 --set yarn.nodeM
 
 To develop using [Skaffold](https://skaffold.dev/), use `skaffold dev`.  
 
+## Screenshots
+
+Find screenshots from running Project in [doc/](https://github.com/SvenG0815/BigData_Store/tree/main/doc)
+
 ## Authors
 
 * **Tobias Mahler** -  [TobiasMahler](https://github.com/TobiasMahler)
