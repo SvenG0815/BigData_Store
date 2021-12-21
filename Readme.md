@@ -1,39 +1,46 @@
-Commands used:
-kubectl create -f postgres-configmap.yaml
-kubectl create -f postgresinit-configmap.yaml
-kubectl create -f postgres-storage.yaml
-kubectl create -f deployment.yaml
-kubectl create -f postgres-service.yaml
-#Find IP
-kubectl get svc postgres
+# BigData_store
 
-#Connect Shell to Container
-kubectl exec --stdin --tty postgres-69bc4f7bc8-xj7lp -- /bin/bash
+BigData_store is a BigData application for learning, how BigData handling and processing is done.  
 
+## Getting Started
 
-Postgress install:
-    ```
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm install my-release bitnami/postgresql
-    ```
+1. download the project.
+2. meet the prerequisites 
+3. deploy the application using [Skaffold](https://skaffold.dev/), use `skaffold dev`.
+4. make sure, webapp:3000 is accessible as localhost:3000 (via ingress/port forward)
+5. open frontend-service:80 (via ingress/port forward)
+6. add some Advertisments by clicking create and creating some in the top menu bar of the frontend.
+7. lookup the logfile for the sparkapp pod in kubernetes. `kubectl logs -f popular-slides-spark-[0000000-00000]`
 
+note: mysql database persistency of the batch output is not implemented yet.
 
-after install following log displayed:
-PostgreSQL can be accessed via port 5432 on the following DNS names from within your cluster:
+## Prerequisites
 
-    postgres-postgresql.default.svc.cluster.local - Read/Write connection
+A running Strimzi.io Kafka operator
 
-To get the password for "postgres" run:
+```bash
+helm repo add strimzi http://strimzi.io/charts/
+helm install my-kafka-operator strimzi/strimzi-kafka-operator
+kubectl apply -f https://farberg.de/talks/big-data/code/helm-kafka-operator/kafka-cluster-def.yaml
+```
 
-    export POSTGRES_PASSWORD=$(kubectl get secret --namespace default postgres-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+A running Hadoop cluster with YARN
 
-To connect to your database run the following command:
+```bash
+helm repo add stable https://charts.helm.sh/stable
+helm install --namespace=default --set hdfs.dataNode.replicas=1 --set yarn.nodeManager.replicas=1 --set hdfs.webhdfs.enabled=true my-hadoop-cluster stable/hadoop
+```
 
-    kubectl run postgres-postgresql-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:11.14.0-debian-10-r0 --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgres-postgresql -U postgres -d postgres -p 5432
+## Deploy
 
+To develop using [Skaffold](https://skaffold.dev/), use `skaffold dev`.  
 
+## Authors
 
-To connect to your database from outside the cluster execute the following commands:
+* **Tobias Mahler** -  [TobiasMahler](https://github.com/TobiasMahler)
+* **Sven Guenther** - [SvenG0815](https://github.com/SvenG0815)
+* **Lukas Bossani** - [lukiboss31](https://github.com/lukiboss31)
 
-    kubectl port-forward --namespace default svc/postgres-postgresql 5432:5432 &
-    PGPASSWORD="$POSTGRES_PASSWORD" psql --host 127.0.0.1 -U postgres -d postgres -p 5432
+## License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE.md](LICENSE.md) file for details
